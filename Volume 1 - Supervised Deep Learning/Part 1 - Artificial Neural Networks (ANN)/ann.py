@@ -83,6 +83,31 @@ y_pred = classifier.predict(X_test)
 # Classifying the results as either true/false
 y_pred = (y_pred > 0.5)
 
+# Predict a single new observation
+"""
+Use our ANN model to predict if the customer with the following informations will leave the bank: 
+
+Geography: France
+Credit Score: 600
+Gender: Male
+Age: 40 years old
+Tenure: 3 years
+Balance: $60000
+Number of Products: 2
+Does this customer have a credit card ? Yes
+Is this customer an Active Member: Yes
+Estimated Salary: $50000
+
+So should we say goodbye to that customer ?
+"""
+new_obsrv = sc.transform(np.array([[0.0, 0.0, 600, 1, 40, 3, 60000, 2, 1, 1, 50000]]))
+new_pred = classifier.predict(new_obsrv)
+new_pred = (new_pred > 0.5)
+
+"""
+Since the value of new_pred is False, the prediction is that the customer will not leave the bank.
+"""
+
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)
