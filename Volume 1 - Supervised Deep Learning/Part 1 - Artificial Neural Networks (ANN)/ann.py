@@ -1,4 +1,4 @@
-# Artificial Neural Network
+# Artificial Neural Networks
 
 ###
 # Part 1 - Data Preprocessing
@@ -38,7 +38,7 @@ X = X[:, 1:]
 
 # Splitting the dataset into the training set and test set
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
 
 # Feature Scaling
 from sklearn.preprocessing import StandardScaler
@@ -47,7 +47,7 @@ X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
 ###
-#Part 2 - Now, let's make an ANN!
+# Part 2 - Building the Artificial Neural Network
 ###
 
 # Importing the Keras libraries and required packages
@@ -71,10 +71,17 @@ classifier.add(Dense(units = 1, kernel_initializer = 'uniform', activation = 'si
 classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
 
 # Fitting the ANN to the training set
-classifier.fit(X_train, y_train, batch_size = 10, epochs = 100)
+classifier.fit(X_train, y_train, batch_size = 10, epochs = 10)
+
+###
+# Part 3 - Making the Predictions and Evaluating the Model
+###
 
 # Predicting the test set results
 y_pred = classifier.predict(X_test)
+
+# Classifying the results as either true/false
+y_pred = (y_pred > 0.5)
 
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
