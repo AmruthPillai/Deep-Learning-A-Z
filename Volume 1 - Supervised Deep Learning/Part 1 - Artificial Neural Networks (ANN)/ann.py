@@ -54,15 +54,18 @@ X_test = sc.transform(X_test)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout
 
 # Initialising the ANN
 classifier = Sequential()
 
 # Adding the input layer and the first hidden layer
 classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu', input_dim = 11))
+classifier.add(Dropout(p = 0.1))
 
 # Adding the second hidden layer
 classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu'))
+classifier.add(Dropout(p = 0.1))
 
 # Adding the output layer
 classifier.add(Dense(units = 1, kernel_initializer = 'uniform', activation = 'sigmoid'))
@@ -71,7 +74,7 @@ classifier.add(Dense(units = 1, kernel_initializer = 'uniform', activation = 'si
 classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
 
 # Fitting the ANN to the training set
-classifier.fit(X_train, y_train, batch_size = 10, epochs = 10)
+classifier.fit(X_train, y_train, batch_size = 10, epochs = 5)
 
 ###
 # Part 3 - Making the Predictions and Evaluating the Model
@@ -107,6 +110,93 @@ new_pred = (new_pred > 0.5)
 """
 Since the value of new_pred is False, the prediction is that the customer will not leave the bank.
 """
+
+###
+# Part 4 - Evaluating, Improving and Tuning the ANN
+###
+
+# Evaluating the ANN
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+from keras.models import Sequential
+from keras.layers import Dense
+
+# The classifier must be a function in order to use KerasClassifier
+def build_classifier():
+    # Initialising the ANN
+    classifier = Sequential()
+    
+    # Adding the input layer and the first hidden layer
+    classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu', input_dim = 11))
+    
+    # Adding the second hidden layer
+    classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu'))
+    
+    # Adding the output layer
+    classifier.add(Dense(units = 1, kernel_initializer = 'uniform', activation = 'sigmoid'))
+    
+    # Compiling the ANN, applying Stochastic Gradient Descent
+    classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+    
+    return classifier
+
+# Use the Keras Classifier with the same parameters as our original classifier
+classifier = KerasClassifier(build_fn = build_classifier, batch_size = 10, epochs = 5)
+
+# Apply K-Fold Cross Validation
+k_fold_accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10, n_jobs = -1)
+
+# Calculating the Mean and Variance of Accuracies
+mean = k_fold_accuracies.mean()
+variance = k_fold_accuracies.std()
+
+# Improving the ANN
+
+# Dropout Regularization to Reduce Overfitting, if needed
+# aka, Remove Outliers
+
+# Tuning the ANN
+from keras.wrappers.scikit_learn import KerasClassifier
+
+# Use GridSearchCV instead to tune individual parameters
+from sklearn.model_selection import GridSearchCV
+from keras.models import Sequential
+from keras.layers import Dense
+
+# The classifier must be a function in order to use KerasClassifier
+def build_classifier(optimizer):
+    # Initialising the ANN
+    classifier = Sequential()
+    
+    # Adding the input layer and the first hidden layer
+    classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu', input_dim = 11))
+    
+    # Adding the second hidden layer
+    classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu'))
+    
+    # Adding the output layer
+    classifier.add(Dense(units = 1, kernel_initializer = 'uniform', activation = 'sigmoid'))
+    
+    # Compiling the ANN, applying Stochastic Gradient Descent
+    classifier.compile(optimizer = optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'])
+    
+    return classifier
+
+# Use the Keras Classifier with the same parameters as our original classifier
+classifier = KerasClassifier(build_fn = build_classifier)
+
+parameters = {'batch_size': [10, 10],
+              'nb_epoch': [5, 5],
+              'optimizer': ['adam', 'rmsprop']}
+
+grid_search = GridSearchCV(estimator = classifier,
+                           param_grid = parameters,
+                           scoring = 'accuracy',
+                           cv = 5)
+
+grid_search = grid_search.fit(X = X_train, y = y_train)
+best_parameters = grid_search.best_params_
+best_accuracy = grid_search.best_score_
 
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
